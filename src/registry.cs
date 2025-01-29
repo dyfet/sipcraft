@@ -20,7 +20,6 @@ namespace sipcraft {
     public class Endpoint {
         public SIPEndPoint? Remote { get; set; } = null;
         public SIPEndPoint? Local { get; set; } = null;
-        public SIPTransport? Transport { get; set; } = null;
         public DateTime Expires { get; set; } = DateTime.MinValue;
     }
 
@@ -181,7 +180,7 @@ namespace sipcraft {
             Load(config);
         }
 
-        public static SIPResponse Refresh(SIPEndPoint local, SIPEndPoint remote, SIPRequest request, SIPTransport transport) {
+        public static SIPResponse Refresh(SIPEndPoint local, SIPEndPoint remote, SIPRequest request) {
             var contact = request.Header.Contact.FirstOrDefault();
             if (contact == null) {
                 return SIPResponse.GetResponse(request, SIPResponseStatusCodesEnum.BadRequest, "Missing Contact Header");
@@ -212,7 +211,6 @@ namespace sipcraft {
             var endpoint = new Endpoint {
                 Remote = remote,
                 Local = local,
-                Transport = transport,
                 Expires = DateTime.Now.AddSeconds(120)
             };
             ext.Refresh(endpoint);

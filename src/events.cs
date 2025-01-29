@@ -1,6 +1,7 @@
 // Copyright (C) 2025 Tycho Softworks. Licensed under CC BY-NC-ND 4.0.
 
 using System.Net;
+using System.Reflection;
 using SIPSorcery.SIP;
 using Tychosoft.Extensions;
 using Microsoft.Extensions.Configuration;
@@ -8,9 +9,10 @@ using Microsoft.Extensions.Configuration;
 namespace sipcraft {
     // Extension events...
     public static class Events {
-        private static readonly SIPTransport sipTransport = new();
+        private static readonly string server_agent = "SIPCraft/" + (Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown");
+        private static SIPTransport local_transport = null!;
 
-        public static async Task OnRequests(SIPEndPoint local, SIPEndPoint remote, SIPRequest request, SIPTransport transport) {
+        public static async Task LocalRequests(SIPEndPoint local, SIPEndPoint remote, SIPRequest request) {
             Logger.Trace($"sip request {local} {remote}: {request.Method}");
             try {
                 SIPResponse response;
@@ -19,13 +21,14 @@ namespace sipcraft {
                         response = Unauthorized(request);
                     }
                     else {
-                       response = Registry.Refresh(local, remote, request, transport);
+                       response = Registry.Refresh(local, remote, request);
                     }
                 }
                 else {
                     response = SIPResponse.GetResponse(request, SIPResponseStatusCodesEnum.MethodNotAllowed, "Method Not Recognized");
                 }
-                await sipTransport.SendResponseAsync(response);
+                response.Header.Server = server_agent;
+                await local_transport.SendResponseAsync(response);
             }
             catch(Exception e) {
                 Logger.Error($"failed: {e.Message}");
@@ -43,17 +46,18 @@ namespace sipcraft {
             }
 
             Logger.Debug($"binding {bind}:{port}");
-            sipTransport.AddSIPChannel(new SIPUDPChannel(new IPEndPoint(bind, port)));
-            sipTransport.AddSIPChannel(new SIPTCPChannel(new IPEndPoint(bind, port)));
-            sipTransport.SIPTransportRequestReceived += async (localEndPoint, remoteEndPoint, sipRequest) =>
-                await Events.OnRequests(localEndPoint, remoteEndPoint, sipRequest, sipTransport);
+            local_transport = new SIPTransport();
+            local_transport.AddSIPChannel(new SIPUDPChannel(new IPEndPoint(bind, port)));
+            local_transport.AddSIPChannel(new SIPTCPChannel(new IPEndPoint(bind, port)));
+            local_transport.SIPTransportRequestReceived += async (local, remote, request) =>
+                await Events.LocalRequests(local, remote, request);
         }
 
         public static void Reload(IConfigurationRoot config) {
         }
 
         public static void Shutdown() {
-            sipTransport.Shutdown();
+            local_transport.Shutdown();
         }
 
         private static SIPResponse Unauthorized(SIPRequest request) {
