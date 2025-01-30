@@ -8,11 +8,11 @@ using Microsoft.Extensions.Configuration;
 
 namespace sipcraft {
     // Extension events...
-    public static class Events {
+    public static class Local {
         private static readonly string server_agent = "SIPCraft/" + (Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown");
-        private static SIPTransport local_transport = null!;
+        private static SIPTransport transport = null!;
 
-        public static async Task LocalRequests(SIPEndPoint local, SIPEndPoint remote, SIPRequest request) {
+        public static async Task OnRequests(SIPEndPoint local, SIPEndPoint remote, SIPRequest request) {
             Logger.Trace($"sip request {local} {remote}: {request.Method}");
             try {
                 SIPResponse response;
@@ -28,7 +28,7 @@ namespace sipcraft {
                     response = SIPResponse.GetResponse(request, SIPResponseStatusCodesEnum.MethodNotAllowed, "Method Not Recognized");
                 }
                 response.Header.Server = server_agent;
-                await local_transport.SendResponseAsync(response);
+                await transport.SendResponseAsync(response);
             }
             catch(Exception e) {
                 Logger.Error($"failed: {e.Message}");
@@ -46,18 +46,18 @@ namespace sipcraft {
             }
 
             Logger.Debug($"binding {bind}:{port}");
-            local_transport = new SIPTransport();
-            local_transport.AddSIPChannel(new SIPUDPChannel(new IPEndPoint(bind, port)));
-            local_transport.AddSIPChannel(new SIPTCPChannel(new IPEndPoint(bind, port)));
-            local_transport.SIPTransportRequestReceived += async (local, remote, request) =>
-                await Events.LocalRequests(local, remote, request);
+            transport = new SIPTransport();
+            transport.AddSIPChannel(new SIPUDPChannel(new IPEndPoint(bind, port)));
+            transport.AddSIPChannel(new SIPTCPChannel(new IPEndPoint(bind, port)));
+            transport.SIPTransportRequestReceived += async (local, remote, request) =>
+                await Local.OnRequests(local, remote, request);
         }
 
         public static void Reload(IConfigurationRoot config) {
         }
 
         public static void Shutdown() {
-            local_transport.Shutdown();
+            transport.Shutdown();
         }
 
         private static SIPResponse Unauthorized(SIPRequest request) {

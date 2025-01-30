@@ -118,7 +118,7 @@ namespace sipcraft {
 
                 Registry.Startup(config);
                 Database.Startup(config);
-                Events.Startup(config);
+                Local.Startup(config);
                 Logger.Info("server started");
                 Console.CancelKeyPress += (sender, e) => {
                     e.Cancel = true;
@@ -158,7 +158,7 @@ namespace sipcraft {
 
         private static void Exit() {
             running = false;
-            Events.Shutdown();
+            Local.Shutdown();
             Registry.Shutdown();
             Database.Shutdown();
             Logger.Info($"server exiting; reason={exitCode}");
@@ -168,7 +168,7 @@ namespace sipcraft {
 
         private static void Reload(IConfigurationRoot config) {
             Logger.Info("reload server");
-            Events.Reload(config);
+            Local.Reload(config);
             Registry.Reload(config);
             Database.Reload(config);
         }
