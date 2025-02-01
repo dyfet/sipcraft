@@ -23,13 +23,15 @@ namespace sipcraft {
         public DateTime Expires { get; set; } = DateTime.MinValue;
     }
 
-    public class Extension(uint id) {
-        public uint Id { get; init; } = id;
-        public string Name { get; set; } = "User " + id;
-        public string Auth { get; set; } = "" + id; // sip auth id
+    public class Extension {
+        public uint Id { get; init; }
+        public string Name { get; set; } = string.Empty;
+        public string Auth { get; set; } = string.Empty;
         public ExtType Type { get; set; } = ExtType.USER;
-        public string Display { get; set; } = "Ext " + id;
-        public string Secret { get; set; } = "";    // realm digest secret
+        public string Display { get; set; } = string.Empty;
+        public string Secret { get; set; } = string.Empty;
+
+        // some internal controls...
         public bool Preset { get; set; } = false;
         public ulong Series { get; set; } = 0;
 
@@ -37,6 +39,15 @@ namespace sipcraft {
         private Object sync { get; set; } = new();
         private DateTime expires { get; set; } = DateTime.MinValue;
         private List<Endpoint> endpoints { get; set; } = new();
+
+        public Extension() {}   // default for dapper...
+
+        public Extension(uint id) {
+            Id = id;
+            Name = "User " + id;
+            Auth = "" + id;
+            Display = "Ext " + id;
+        }
 
         public void Refresh(Endpoint endpoint) {
             lock (sync) {

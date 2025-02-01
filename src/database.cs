@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using Dapper;
 using Npgsql;
 using Tychosoft.Extensions;
 using Microsoft.Extensions.Configuration;
@@ -88,22 +89,10 @@ namespace sipcraft {
             using var db = new NpgsqlConnection(dsn);
             try {
                 db.Open();
-                string query = "SELECT ext.id, user.name, ext.display, ext.type, ext.user, auth.secret FROM ext JOIN auth ON ext.user = auth.user";
-                using var sql = new NpgsqlCommand(query, db);
-                using var reader = sql.ExecuteReader();
-                ++series;
-                while (reader.Read()) {
-                    if( uint.TryParse(reader.GetString(0), out uint id)) {
-                        var ext = new Extension(id) {
-                            Name = reader.GetString(1),
-                            Display = reader.GetString(2),
-                            Type = GetType(reader.GetString(3)),
-                            Auth = reader.GetString(4),
-                            Secret = reader.GetString(5),
-                            Series = series
-                        };
-                        Registry.Update(ext);
-                    }
+                string sql = "SELECT ext.id, auth.name, ext.display, ext.type, ext.user, auth.name as Name, auth.secret AS Secret FROM ext JOIN auth ON ext.user = auth.user";
+                IEnumerable<Extension> extensions = db.Query<Extension>(sql);
+                foreach (var extension in extensions) {
+                    Registry.Update(extension);
                 }
                 Registry.Sync(series);
             }
