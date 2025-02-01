@@ -32,7 +32,7 @@ release:
 	@dotnet build -f $(DOTNET) -c Release
 
 publish:
-	@dotnet publish $(PROJECT).csproj -f $(DOTNET) -o bin/Install/$(DOTNET) -c Release /p:defineConstants="\"INSTALL;RELEASE;UNIX\"" --self-contained
+	@dotnet publish $(PROJECT).csproj -f $(DOTNET) -o bin/Install/$(DOTNET) -c Release /p:defineConstants="\"INSTALL;RELEASE;UNIX\""
 
 docker:
 	@dotnet publish $(PROJECT).csproj -f $(DOTNET) -o bin/Docker/$(DOTNET) -c Release --self-contained

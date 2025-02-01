@@ -17,12 +17,21 @@ using System.Management;
 #endif
 
 namespace sipcraft {
-    public class ServerConfig(IConfiguration config) {
-        public IPAddress bind {get; set;} = IPAddress.Parse(config["server:bind"] ?? "0.0.0.0");
-        public UInt16 port {get; set;} = UInt16.Parse(config["server:port"] ?? "5060");
-        public uint connections {get; set;} = uint.Parse(config["server:connections"] ?? "5");
-        public string dsn {get; set;} = config["server:dsn"] ?? "none";
-        public string realm {get; set;} = config["server:realm"] ?? Environment.MachineName;
+    public class ServerConfig() {
+        public IPAddress bind {get; set;} = IPAddress.Any;
+        public UInt16 port {get; set;} = 5060;
+        public uint connections {get; set;} = 5;
+        public string dsn {get; set;} = "none";
+        public string realm {get; set;} = Environment.MachineName;
+
+        public static ServerConfig Bind(IConfigurationRoot config) {
+            var server = new ServerConfig();
+            var section = config.GetSection("server");
+            if (section != null && section.Exists()) {
+                section.Bind(server);
+            }
+            return server;
+        }
     }
 
     class Program {
@@ -124,7 +133,7 @@ namespace sipcraft {
                     Reload(config);
                 });
 #endif
-                ServerConfig server = new ServerConfig(config);
+                var server = ServerConfig.Bind(config);
                 Registry.Startup(config);
                 Database.Startup(server);
                 Local.Startup(server);
@@ -177,8 +186,7 @@ namespace sipcraft {
 
         private static void Reload(IConfigurationRoot config) {
             Logger.Info("reload server");
-            ServerConfig server = new ServerConfig(config);
-
+            var server = ServerConfig.Bind(config);
             Local.Reload(server);
             Registry.Reload(config);
             Database.Reload(server);
