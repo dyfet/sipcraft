@@ -156,14 +156,14 @@ namespace sipcraft {
         }
 
         public static void Startup(IConfigurationRoot config) {
-            Logger.Info("Startup Registry");
+            Logger.Info("startup Registry");
             var keys = config.GetSection("server");
             realm = keys["realm"] ?? Environment.MachineName;
             Load(config);
         }
 
         public static void Shutdown() {
-            Logger.Info("Shutdown Registry");
+            Logger.Info("shutdown Registry");
         }
 
         public static void Reload(IConfigurationRoot config) {

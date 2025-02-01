@@ -35,15 +35,9 @@ namespace sipcraft {
             }
         }
 
-        public static void Startup(IConfigurationRoot config) {
-            var keys = config.GetSection("server");
-            if(!int.TryParse(keys["port"], out int port)) {
-                port = 5060;
-            }
-
-            if(string.IsNullOrEmpty(keys["bind"]) || !IPAddress.TryParse(keys["bind"], out IPAddress? bind)) {
-                bind = IPAddress.Any;
-            }
+        public static void Startup(ServerConfig config) {
+            var bind = config.bind;
+            var port = config.port;
 
             Logger.Debug($"binding {bind}:{port}");
             transport = new SIPTransport();
@@ -53,7 +47,7 @@ namespace sipcraft {
                 await Local.OnRequests(local, remote, request);
         }
 
-        public static void Reload(IConfigurationRoot config) {
+        public static void Reload(ServerConfig config) {
         }
 
         public static void Shutdown() {

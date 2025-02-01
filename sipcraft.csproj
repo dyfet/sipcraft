@@ -5,7 +5,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PublishTrimmed>false</PublishTrimmed>
+    <PublishTrimmed>true</PublishTrimmed>
     <PublishAOT>false</PublishAOT>
     <PublishSingleFile>true</PublishSingleFile>
     <ReadyToRun>true</ReadyToRun>
@@ -31,11 +31,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)' == 'Unix'">
     <DefineConstants>$(DefineConstants);UNIX</DefineConstants>
-    <PublishAOT>true</PublishAOT>
-    <PublishSingleFile>false</PublishSingleFile>
-    <ReadyToRun>false</ReadyToRun>
-    <SelfContained>false</SelfContained>
-    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>

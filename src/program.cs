@@ -6,6 +6,7 @@ using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Primitives;
 using System.Diagnostics;
 using System.Runtime;
+using System.Net;
 using Tychosoft.Extensions;
 
 #if UNIX
@@ -16,6 +17,14 @@ using System.Management;
 #endif
 
 namespace sipcraft {
+    public class ServerConfig(IConfiguration config) {
+        public IPAddress bind {get; set;} = IPAddress.Parse(config["server:bind"] ?? "0.0.0.0");
+        public UInt16 port {get; set;} = UInt16.Parse(config["server:port"] ?? "5060");
+        public uint connections {get; set;} = uint.Parse(config["server:connections"] ?? "5");
+        public string dsn {get; set;} = config["server:dsn"] ?? "none";
+        public string realm {get; set;} = config["server:realm"] ?? Environment.MachineName;
+    }
+
     class Program {
         private static bool running = true;
         private static int exitCode = 0;
@@ -115,10 +124,10 @@ namespace sipcraft {
                     Reload(config);
                 });
 #endif
-
+                ServerConfig server = new ServerConfig(config);
                 Registry.Startup(config);
-                Database.Startup(config);
-                Local.Startup(config);
+                Database.Startup(server);
+                Local.Startup(server);
                 Logger.Info("server started");
                 Console.CancelKeyPress += (sender, e) => {
                     e.Cancel = true;
@@ -168,9 +177,11 @@ namespace sipcraft {
 
         private static void Reload(IConfigurationRoot config) {
             Logger.Info("reload server");
-            Local.Reload(config);
+            ServerConfig server = new ServerConfig(config);
+
+            Local.Reload(server);
             Registry.Reload(config);
-            Database.Reload(config);
+            Database.Reload(server);
         }
 
 #if WINDOWS

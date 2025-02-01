@@ -16,16 +16,10 @@ namespace sipcraft {
         private static SemaphoreCount limiter = null!;
         private static NpgsqlConnection listener = null!;
 
-        public static void Startup(IConfigurationRoot config) {
+        public static void Startup(ServerConfig config) {
             tq.Startup();
-
-            var keys = config.GetSection("server");
-            if(!uint.TryParse(keys["connections"], out uint limit)) {
-                limit = 5;
-            }
-            limiter = new SemaphoreCount((int)limit);
-
-            dsn = keys["dsn"] ?? "none";
+            limiter = new SemaphoreCount((int)config.connections);
+            dsn = config.dsn;
             if (dsn == "none") {
                 return;
             }
@@ -43,19 +37,15 @@ namespace sipcraft {
                 sql.ExecuteNonQuery();
             }
 
-            Logger.Info("Startup Database");
+            Logger.Info("startup Database");
             listening = true;
             listen.Start();
             Resync();
         }
 
-        public static void Reload(IConfigurationRoot config) {
+        public static void Reload(ServerConfig config) {
             if(dsn != "none") {
-                var keys = config.GetSection("server");
-                if(!uint.TryParse(keys["connections"], out uint limit)) {
-                    limit = 5;
-                }
-                limiter.Reset((int)limit);
+                limiter.Reset((int)config.connections);
                 Resync();
             }
         }
@@ -67,7 +57,7 @@ namespace sipcraft {
                 dsn = "none";
                 listener.Close();
                 listen.Join();
-                Logger.Info("Shutdown Database");
+                Logger.Info("shutdown Database");
             }
         }
 
