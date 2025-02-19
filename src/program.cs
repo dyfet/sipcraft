@@ -27,9 +27,8 @@ namespace sipcraft {
         public static ServerConfig Bind(IConfigurationRoot config) {
             var server = new ServerConfig();
             var section = config.GetSection("server");
-            if (section != null && section.Exists()) {
+            if (section != null && section.Exists())
                 section.Bind(server);
-            }
             return server;
         }
     }
@@ -67,10 +66,8 @@ namespace sipcraft {
                     Environment.Exit(0);
                 }
 
-                if(verboseOption.HasValue()) {
+                if(verboseOption.HasValue())
                     Logger.SetVerbose();
-                }
-
                 if(prefixOption.HasValue()) {
                     var directory = prefixOption.Value();
                     if(Directory.Exists(directory)) {

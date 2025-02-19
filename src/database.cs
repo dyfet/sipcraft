@@ -21,10 +21,7 @@ namespace sipcraft {
             tq.Startup();
             limiter = new SemaphoreCount((int)config.connections);
             dsn = config.dsn;
-            if (dsn == "none") {
-                return;
-            }
-
+            if (dsn == "none") return;
             try {
                 listener = new NpgsqlConnection(dsn);
                 listener.Open();
@@ -75,10 +72,7 @@ namespace sipcraft {
         }
 
         private static void Resync() {
-            if (dsn == "none") {
-                return;
-            }
-
+            if (dsn == "none") return;
             try {
                 limiter.Wait();
             }
@@ -117,9 +111,7 @@ namespace sipcraft {
         }
 
         private static ExtType GetType(string str) {
-            if(Enum.TryParse<ExtType>(str, out ExtType type)) {
-                return type;
-            }
+            if(Enum.TryParse<ExtType>(str, out ExtType type)) return type;
             return ExtType.USER;
         }
     }

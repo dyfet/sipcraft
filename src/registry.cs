@@ -51,9 +51,8 @@ namespace sipcraft {
 
         public void Refresh(Endpoint endpoint) {
             lock (sync) {
-                if (endpoint.Expires > expires) {
+                if (endpoint.Expires > expires)
                     expires = endpoint.Expires;
-                }
                 foreach (Endpoint ep in endpoints) {
                     if (ep.Remote == endpoint.Remote) {
                         ep.Expires = endpoint.Expires;
@@ -74,13 +73,10 @@ namespace sipcraft {
             List<Endpoint> list = new();
             lock (sync) {
                 foreach (Endpoint ep in endpoints) {
-                    if (ep.Expires <= DateTime.Now) {
-                        continue;
-                    }
+                    if (ep.Expires <= DateTime.Now) continue;
                     list.Add(ep);
-                    if (ep.Expires > expires) {
+                    if (ep.Expires > expires)
                         expires = ep.Expires;
-                    }
                 }
                 endpoints = list;
             }
@@ -103,18 +99,15 @@ namespace sipcraft {
         }
 
         public static Extension? Get(uint id) {
-            if (extensions.TryGetValue(id, out Extension? ext)) {
-                return ext;
-            }
+            if (extensions.TryGetValue(id, out Extension? ext)) return ext;
             return null;
         }
 
         public static void Sync(ulong series) {
             List<uint> list = new();
             foreach (var kvp in extensions) {
-                if(kvp.Value.Preset == false && kvp.Value.Series < series) {
+                if(kvp.Value.Preset == false && kvp.Value.Series < series)
                     list.Add(kvp.Key);
-                }
             }
             foreach (var key in list) {
                 extensions.TryRemove(key, out _);
@@ -143,22 +136,17 @@ namespace sipcraft {
         }
 
         public static bool Update(Extension ext) {
-            if (String.IsNullOrEmpty(ext.Display)) {
+            if (String.IsNullOrEmpty(ext.Display))
                 ext.Display = ext.Name;
-            }
 
-            if (String.IsNullOrEmpty(ext.Display)) {
+            if (String.IsNullOrEmpty(ext.Display))
                 ext.Display = "Ext " + ext.Id;
-            }
 
             var old = Get(ext.Id);
             if (old != null) {
-                if (old.Preset == true && ext.Preset == false) {
-                    return false;
-                }
+                if (old.Preset == true && ext.Preset == false) return false;
                 ext.Retain(old);
             }
-
             return extensions.AddOrUpdate(ext.Id, ext, (key, old) => ext) != null;
         }
 
@@ -193,32 +181,20 @@ namespace sipcraft {
 
         public static SIPResponse Refresh(SIPEndPoint local, SIPEndPoint remote, SIPRequest request) {
             var contact = request.Header.Contact.FirstOrDefault();
-            if (contact == null) {
-                return SIPResponse.GetResponse(request, SIPResponseStatusCodesEnum.BadRequest, "Missing Contact Header");
-            }
+            if (contact == null) return SIPResponse.GetResponse(request, SIPResponseStatusCodesEnum.BadRequest, "Missing Contact Header");
             var uri = contact.ContactURI;
             var user = uri.User;
             Extension? ext = null;
-            if (uint.TryParse(user, out uint id)) {
+            if (uint.TryParse(user, out uint id))
                 ext = Get(id);
-            }
-            if (ext == null) {
-                return SIPResponse.GetResponse(request, SIPResponseStatusCodesEnum.NotFound, "User mpt found");
-            }
-
+            if (ext == null) return SIPResponse.GetResponse(request, SIPResponseStatusCodesEnum.NotFound, "User mpt found");
             var auth = request.Header.AuthenticationHeaders[0];
-            if (auth.SIPDigest.Username != ext.Auth) {
-                return SIPResponse.GetResponse(request, SIPResponseStatusCodesEnum.Unauthorised, "User not valid");
-            }
-
+            if (auth.SIPDigest.Username != ext.Auth) return SIPResponse.GetResponse(request, SIPResponseStatusCodesEnum.Unauthorised, "User not valid");
             var nonce = auth.SIPDigest.Nonce;
             var digest = auth.SIPDigest.Response;
             var ha2 = ComputeDigest($"{request.Method}.{request.URI}");
             var expects = ComputeDigest("{ext.Secret}:{providedNonce}:{ha2}");
-            if (expects != digest) {
-                return SIPResponse.GetResponse(request, SIPResponseStatusCodesEnum.Unauthorised, null);
-            }
-
+            if (expects != digest) return SIPResponse.GetResponse(request, SIPResponseStatusCodesEnum.Unauthorised, null);
             var endpoint = new Endpoint {
                 Remote = remote,
                 Local = local,
