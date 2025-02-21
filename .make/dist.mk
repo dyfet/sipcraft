@@ -28,10 +28,5 @@ mindist:
 	@git archive -o $(ARCHIVE)-mindist.tar --format tar --prefix=$(ARCHIVE)-mindist/ HEAD
 	@gzip $(ARCHIVE)-mindist.tar
 
-distclean:	clean
-	@if test -f go.mod ; then rm -rf vendor ; fi
-	@rm -f go.sum
-	@if test -f go.mod ; then ( echo "module $(ARCHIVE)" ; echo ; echo "$(GOVER)" ) > go.mod ; fi
-
 vendor:	restore
 	@.make/vendor.sh $(DOTNET)

@@ -4,8 +4,8 @@ This is the start of a new enterprise SIP server in C# using the SIPSorcery
 stack. The server will operate optionally in conjunction with a postgresql data
 server and likely a golang management system. To maintain high availability
 sipcraft will cache data tables such as extensions locally and can operate
-with intermittendent database connection loss with support for automatic
-backend resynchrononization. If no backend database is used the config file
+with intermittent database connection loss with support for automatic
+backend resynchronization. If no backend database is used the config file
 alone will supply extension information, which can also be used for stand-alone
 development testing.
 
